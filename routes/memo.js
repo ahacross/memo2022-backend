@@ -57,14 +57,9 @@ async function saveTags(conn, tagNames, mid) {
   }
 }
 
-const templateParam = {
-  status: 'Y',
-  isPublic: 'N'
-}
-
 /* insert */
 router.post('/', async function(req, res, next) {
-  const params = { ...templateParam, ...req.body };
+  const params = req.body;
   await queryTrans(async conn => {
     const memo = await conn.query(memosTable.insert(params))
     const mid = memo.insertId
@@ -77,7 +72,7 @@ router.post('/', async function(req, res, next) {
 
 /* update */
 router.put('/:mid', async function(req, res, next) {
-  const params = { ...templateParam, ...req.body };
+  const params = req.body;
   params.mid = Number(req.params.mid);
   const result = await queryTrans(async conn => {
     await conn.query(memosTable.update(params));
@@ -87,6 +82,13 @@ router.put('/:mid', async function(req, res, next) {
 
   console.log(result);
   res.json({"msg":"수정 성공"})
+});
+
+/* delete */
+router.delete('/:mid', async (req, res, next) => {
+  const mid = Number(req.params.mid);
+  await queryTrans(async conn => await conn.query(memosTable.update({ status: "N", mid })));
+  res.json({ "msg": "삭제 성공" });
 });
 
 module.exports = router;

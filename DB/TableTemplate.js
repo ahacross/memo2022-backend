@@ -28,7 +28,7 @@ class TableTemplate {
         if(value && typeof value === 'string') {
           value = `'${value}'`;
         }
-        array.push(`${name}=${value}`);
+        value && array.push(`${name}=${value}`);
       }
     }
 
