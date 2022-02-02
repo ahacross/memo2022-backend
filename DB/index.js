@@ -37,10 +37,6 @@ const queryTrans = async (fn) => {
   return Promise.resolve(1);
 }
 
-const addPaging = function(query, size, row) {
-  return `${query} limit ${size} offset ${row}`;
-}
-
 module.exports = {
-  query, queryTrans, TableTemplate, addPaging,
+  query, queryTrans, TableTemplate
 }

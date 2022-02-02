@@ -1,34 +1,33 @@
-const { TableTemplate, query, queryTrans, addPaging } = require('../DB/');
+const { TableTemplate, query, queryTrans } = require('../DB/');
 const express = require('express');
 const router = express.Router();
 
+const database = 'noteDB'
 const fields = ["title", "memo", "isPublic", "status"];
-const memosTable = new TableTemplate('noteDB.memos', fields, ["mid"]);
-// const table = new TableTemplate('memo.memos', ["title", "memo", "status"], ["mid"]);
-const memosListQuery = params => `${memosTable.select(params)} order by mid DESC `;
+const memosTable = new TableTemplate(`${database}.memos m`, fields, ["mid"]);
+memosTable.setFieldQuery(`
+  m.*,
+  (select GROUP_CONCAT(tname SEPARATOR ' ') from ${database}.memo_tags mt join ${database}.tags t on mt.tid = t.tid where mt.mid = m.mid) tags
+`)
 
 /* list */
 router.get('/', async function(req, res, next) {
-  const { size, row } = req.query;
-  const listQuery = memosListQuery()
-  const queryStr = size ? addPaging(listQuery, size, row) : listQuery
-  console.log(size, row, queryStr)
+  const { pageSize, rowNum } = req.query;
+  const queryStr = memosTable.getList( { pageSize, rowNum, orderBy: [{ mid: 'DESC' }] })
   res.json(await query(async conn => await conn.query(queryStr)));
 });
 
 /* getOne */
 router.get('/:mid', async function(req, res, next) {
   const { mid } = req.params;
-  const queryStr = memosListQuery({ mid })
-  res.json(await query(async conn => await conn.query(queryStr)));
+  res.json(await query(async conn => await conn.query(memosTable.select({ mid }))));
 });
 
-const tagsTable = new TableTemplate('noteDB.tags', ["tname"], ["tid"]);
-const memoTagsTable = new TableTemplate('noteDB.memo_tags', ["mid", "tid"], ["mid", "tid"]);
-const memoTagsQuery = mid => `select mt.*, t.tname from noteDB.memo_tags mt join noteDB.tags t on mt.tid = t.tid where mid='${mid}'`
+const tagsTable = new TableTemplate(`${database}.tags`, ["tname"], ["tid"]);
+const memoTagsTable = new TableTemplate(`${database}.memo_tags mt`, ["mid", "tid"], ["mid", "tid"]);
 
 async function saveTags(conn, tagNames, mid) {
-  const memoTagIds = await conn.query(memoTagsQuery(mid));
+  const memoTagIds = await conn.query(memoTagsTable.join('mt.*, t.tname', `${database}.tags t`, 'mt.tid = t.tid', { mid }));
   let savedTnames = []
   if (memoTagIds.length) {
     savedTnames = memoTagIds.map(({ tname }) => tname);
