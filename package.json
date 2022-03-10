@@ -2,16 +2,20 @@
   "name": "backend",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "start": "npx nodemon ./app.js"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
+    "crypto-js": "^4.1.1",
     "debug": "~2.6.9",
     "dotenv": "^15.0.0",
     "express": "4.17.2",
-    "mariadb": "^2.5.5",
-    "morgan": "~1.9.1"
+    "load-json-file": "^7.0.1",
+    "morgan": "~1.9.1",
+    "reactive-json-file": "^2.0.0",
+    "write-json-file": "^5.0.0"
   },
   "devDependencies": {
     "eslint": "^8.8.0",
